@@ -9,11 +9,22 @@ defmodule Polygot.Plug do
 
   def init(opts), do: opts
 
-  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, _default)
+  def find_locale_by_prefix(prefix) do
+    Enum.find(@locales, fn({_,info}) ->
+      info.path_prefix == prefix
+    end)
+  end
+
+  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, gettext: gettext_module)
     when prefix in @available_prefixes do
-      { locale, _ } = Enum.find(@locales, fn({_,info}) ->
-        info.path_prefix == prefix
-      end)
+      {locale, _} = find_locale_by_prefix prefix
+      Gettext.put_locale(gettext_module, locale)
+      conn |> assign(:locale, locale)
+  end
+
+  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, _opts)
+    when prefix in @available_prefixes do
+      {locale, _} = find_locale_by_prefix prefix
       conn |> assign(:locale, locale)
   end
 
