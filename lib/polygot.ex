@@ -6,7 +6,7 @@ defmodule Polygot do
 
   @locales Application.get_env(:polygot, :locales)
 
-  defmacro localize({verb, meta, [ path, plug, plug_opts | rest ]}) when verb in @http_methods do
+  defmacro localize({verb, meta, [ path, plug, plug_opts | rest ]} = route) when verb in @http_methods do
     Enum.map(@locales, fn({locale, info}) ->
       { verb, meta, ["/#{info.path_prefix}#{path}", plug, [ action: plug_opts, locale: locale ], rest ]}
     end)
