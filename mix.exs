@@ -13,7 +13,7 @@ defmodule Polygot.Mixfile do
      package: package,
      deps: deps,
      description: """
-     A fully featured library for localizing your Phoenix website
+     A library to serve your Phoenix app in differnt locales
      """]
   end
 
