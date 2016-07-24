@@ -3,6 +3,7 @@ defmodule Polygot.Plug do
   import Plug.Conn
 
   @locales Application.get_env(:polygot, :locales)
+  @gettext Application.get_env(:polygot, :gettext_module)
   @available_prefixes @locales
                       |> Map.values
                       |> Enum.map(&(Map.fetch!(&1, :path_prefix)))
@@ -15,16 +16,10 @@ defmodule Polygot.Plug do
     end)
   end
 
-  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, gettext: gettext_module)
+  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]})
     when prefix in @available_prefixes do
       {locale, _} = find_locale_by_prefix prefix
-      Gettext.put_locale(gettext_module, locale)
-      conn |> assign(:locale, locale)
-  end
-
-  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, _opts)
-    when prefix in @available_prefixes do
-      {locale, _} = find_locale_by_prefix prefix
+      Gettext.put_locale(@gettext, locale)
       conn |> assign(:locale, locale)
   end
 
