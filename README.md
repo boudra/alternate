@@ -59,6 +59,8 @@ Now all that's left to do is to add Polygot's plug into your pipeline, so that i
 plug Polygot.Plug
 ```
 
+Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `:en-GB`, and your Gettext locale will be set to `en-GB` automatically.
+
 ## Route helpers
 
 To generate localized routes we'll need to add this:
@@ -69,7 +71,7 @@ import Polygot.Helpers
 
 to our `controller` and `view` sections of our `web/web.ex`
 
-now similarly than the routing, we can use `localize` to generate translated paths and urls:
+now similarly to the routing, we can use `localize` to generate translated paths and urls:
 
 ```elixir
 localize page_path(conn, :index)
