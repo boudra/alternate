@@ -1,6 +1,6 @@
 # Polygot
 
-A library to serve your Phoenix app in differnt locales.
+A library to serve your Phoenix app in different locales.
 
 ## Installation
 
