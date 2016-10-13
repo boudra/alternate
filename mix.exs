@@ -3,7 +3,7 @@ defmodule Polygot.Mixfile do
 
   def project do
     [app: :polygot,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.3",
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
      name: "Polygot",
