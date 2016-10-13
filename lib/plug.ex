@@ -16,7 +16,7 @@ defmodule Polygot.Plug do
     end)
   end
 
-  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]})
+  def call(conn = %Plug.Conn{path_info: [ prefix | _ ]}, _opts)
     when prefix in @available_prefixes do
       {locale, _} = find_locale_by_prefix prefix
       Gettext.put_locale(@gettext, locale)
