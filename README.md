@@ -61,6 +61,14 @@ plug Polygot.Plug
 
 Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `:en-GB`, and your Gettext locale will be set to `en-GB` automatically.
 
+## Controller
+
+We'll need to add an extra `init/1` function in or controllers so that they can support localised actions, you can add this to the `controller` section of your `web/web.ex`.
+
+```elixir
+use Polygot.Controller
+```
+
 ## Route helpers
 
 To generate localized routes we'll need to add this:
