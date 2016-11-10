@@ -1,11 +1,11 @@
-defmodule Polygot do
+defmodule Alternate do
 
   @http_methods [
     :get, :post, :put, :patch, :delete, :options, :connect, :trace, :head
   ]
 
-  @locales Application.get_env(:polygot, :locales, %{})
-  @locale_assign_key Application.get_env(:polygot, :locale_assign_key, :polygot_locale)
+  @locales Application.get_env(:alternate, :locales, %{})
+  @locale_assign_key Application.get_env(:alternate, :locale_assign_key, :alternate_locale)
 
   defp do_localize({verb, meta, [ path, plug, plug_opts, options ]}) do
     Enum.map(@locales, fn({locale, config}) ->

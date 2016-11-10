@@ -1,10 +1,8 @@
-defmodule Polygot.Plug do
+defmodule Alternate.Plug do
 
-  import Plug.Conn
-
-  @locales Application.get_env(:polygot, :locales, %{})
-  @gettext Application.get_env(:polygot, :gettext_module, nil)
-  @locale_assign_key Application.get_env(:polygot, :locale_assign_key, :polygot_locale)
+  @locales Application.get_env(:alternate, :locales, %{})
+  @gettext Application.get_env(:alternate, :gettext_module, nil)
+  @locale_assign_key Application.get_env(:alternate, :locale_assign_key, :alternate_locale)
 
   def init(opts), do: opts
 
@@ -14,7 +12,6 @@ defmodule Polygot.Plug do
         nil ->
           conn
         locale ->
-          IO.inspect locale
           Gettext.put_locale(@gettext, locale)
           conn
       end

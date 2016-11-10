@@ -1,7 +1,7 @@
 use Mix.Config
 
-config :polygot,
+config :alternate,
   locales: %{},
-  locale_assign_key: :polygot_locale,
-  gettext_module: Polygot.Gettext,
+  locale_assign_key: :alternate_locale,
+  gettext_module: Alternate.Gettext,
   gettext_domain: "default"

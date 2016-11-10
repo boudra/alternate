@@ -1,4 +1,4 @@
-# Polygot
+# Alternate
 
 A library to serve your Phoenix app in different locales.
 
@@ -6,18 +6,18 @@ A library to serve your Phoenix app in different locales.
 
 The package can be installed as:
 
-Add `polygot` to your list of dependencies in `mix.exs`:
+Add `alternate` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:polygot, "~> 0.2.0"}]
+  [{:alternate, "~> 0.2.0"}]
 end
 ```
 
-Ensure `polygot` is configured in `config/config.exs`:
+Ensure `alternate` is configured in `config/config.exs`:
 
 ```elixir
-config :polygot,
+config :alternate,
     locales: %{
         "en-GB" => %{ path_prefix: "gb" },
         "en-US" => %{ path_prefix: "us" }
@@ -33,10 +33,10 @@ config :polygot,
 
 ## Router
 
-You'll need to import `Polygot` to your router(s), it is recommended that you do so in the `def router do` section in `web/web.ex`:
+You'll need to import `Alternate` to your router(s), it is recommended that you do so in the `def router do` section in `web/web.ex`:
 
 ```elixir
-import Polygot
+import Alternate
 ```
 
 this will let you be able to use the `localize` macro in your routes like this:
@@ -49,14 +49,14 @@ if we run `mix phoenix.routes` we'll see that it created all the routes for our 
 
 ```bash
 $ mix phoenix.routes
-page_path  GET  /gb  PolygotExample.PageController [action: :index, locale: "en-GB"]
-page_path  GET  /us  PolygotExample.PageController [action: :index, locale: "en-US"]
+page_path  GET  /gb  AlternateExample.PageController [action: :index, locale: "en-GB"]
+page_path  GET  /us  AlternateExample.PageController [action: :index, locale: "en-US"]
 ```
 
-Now all that's left to do is to add Polygot's plug into your pipeline, so that it can set the appropiate locale based on the requested path:
+Now all that's left to do is to add Alternate's plug into your pipeline, so that it can set the appropiate locale based on the requested path:
 
 ```elixir
-plug Polygot.Plug
+plug Alternate.Plug
 ```
 
 Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `"en-GB"`, and your Gettext locale will be set to `"en-GB"` automatically.
@@ -76,7 +76,7 @@ The locales that you don't define in the `translations` map will use the `/start
 We'll need to add an extra `init/1` function in or controllers so that they can support localised actions, you can add this to the `controller` section of your `web/web.ex`.
 
 ```elixir
-use Polygot.Controller
+use Alternate.Controller
 ```
 
 ## Route helpers
@@ -84,7 +84,7 @@ use Polygot.Controller
 To generate localized routes we'll need to add this:
 
 ```elixir
-import Polygot.Helpers
+import Alternate.Helpers
 ```
 
 to our `controller` and `view` sections of our `web/web.ex`

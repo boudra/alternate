@@ -1,6 +1,6 @@
-defmodule PolygotTest do
+defmodule AlternateTest do
   use ExUnit.Case
-  doctest Polygot
+  doctest Alternate
 
   test "the truth" do
     assert 1 + 1 == 2
