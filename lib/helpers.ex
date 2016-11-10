@@ -1,11 +1,10 @@
 defmodule Polygot.Helpers do
 
-  def localize_plug_opts(%Plug.Conn{assigns: %{ locale: locale }} = conn, opts) do
-    [ action: opts, locale: locale ]
-  end
+  @locale_assign_key Application.get_env(:polygot, :locale_assign_key, :polygot_locale)
 
-  def localize_plug_opts(%Plug.Conn{} = conn, opts) do
-    raise RuntimeError, message: "Assign :locale not found in the conn. Did you forget to call Polygot.Plug?"
+  def localize_plug_opts(%Plug.Conn{assigns: assigns} = conn, opts) do
+    locale = Map.fetch!(assigns, @locale_assign_key)
+    [ action: opts, locale: locale ]
   end
 
   defmacro localize({helper, meta, [ conn, opts | rest ]} = x) do
