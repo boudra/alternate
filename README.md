@@ -1,4 +1,9 @@
+[![Hex.pm](https://img.shields.io/hexpm/v/plug.svg)]()
+
+------------------------------------
+
 # Alternate
+
 
 A library to serve your Phoenix app in different locales.
 
