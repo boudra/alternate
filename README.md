@@ -10,7 +10,7 @@ Add `polygot` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:polygot, "~> 0.1.0"}]
+  [{:polygot, "~> 0.2.0"}]
 end
 ```
 
@@ -22,13 +22,13 @@ config :polygot,
         "en-GB" => %{ path_prefix: "gb" },
         "en-US" => %{ path_prefix: "us" }
     },
-    gettext_module: YourApp.Gettext,
-    gettext_domain: "routes"
+    locale_assign_key: :locale,
+    gettext_module: YourAppModule.Gettext
 ```
 
 * `locales` this is a map of the locales you want to support, the key will also be used as the name for your Gettext locale.
     * `path_prefix` is the prefix that will be used in your urls, for example: `http://example.com/gb` will load the `en-GB` locale.
-* `gettext_domain` is the domain to use for your route translations, in this case it will fetch the strings from `routes.po`
+* `locale_assign_key` is the key that will be used to store the loaded locale in the `assigns`
 * `gettext_module` is the Gettext module to use, it will most probably be `{YourAppModule}.Gettext`
 
 ## Router
@@ -53,13 +53,17 @@ page_path  GET  /gb  PolygotExample.PageController [action: :index, locale: "en-
 page_path  GET  /us  PolygotExample.PageController [action: :index, locale: "en-US"]
 ```
 
-Now all that's left to do is to add Polygot's plug into your pipeline, so that it can set the appropiate locale based on the requested path:
+Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `:en-GB`, and your Gettext locale will be set to `en-GB` automatically.
 
-```elixir
-plug Polygot.Plug
+If we want to specify different text routes for different locales we can do it like this:
+
+```elixr
+localize get "/start", PageController, :index, translations: %{
+  "es-ES" => "/empezar"
+}
 ```
 
-Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `:en-GB`, and your Gettext locale will be set to `en-GB` automatically.
+The locales that you don't define in the `translations` map will use the `/start` route to match.
 
 ## Controller
 
