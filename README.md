@@ -53,7 +53,13 @@ page_path  GET  /gb  PolygotExample.PageController [action: :index, locale: "en-
 page_path  GET  /us  PolygotExample.PageController [action: :index, locale: "en-US"]
 ```
 
-Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `:en-GB`, and your Gettext locale will be set to `en-GB` automatically.
+Now all that's left to do is to add Polygot's plug into your pipeline, so that it can set the appropiate locale based on the requested path:
+
+```elixir
+plug Polygot.Plug
+```
+
+Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `"en-GB"`, and your Gettext locale will be set to `"en-GB"` automatically.
 
 If we want to specify different text routes for different locales we can do it like this:
 
