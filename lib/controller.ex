@@ -1,4 +1,4 @@
-defmodule Polygot.Controller do
+defmodule Alternate.Controller do
 
   defmacro __using__(_) do
     quote do
