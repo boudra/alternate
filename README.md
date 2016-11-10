@@ -41,13 +41,13 @@ import Polygot
 
 this will let you be able to use the `localize` macro in your routes like this:
 
-```elixr
+```elixir
 localize get "/", PageController, :index
 ```
 
 if we run `mix phoenix.routes` we'll see that it created all the routes for our defined locales:
 
-```zsh
+```bash
 $ mix phoenix.routes
 page_path  GET  /gb  PolygotExample.PageController [action: :index, locale: "en-GB"]
 page_path  GET  /us  PolygotExample.PageController [action: :index, locale: "en-US"]
@@ -57,7 +57,7 @@ Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `
 
 If we want to specify different text routes for different locales we can do it like this:
 
-```elixr
+```elixir
 localize get "/start", PageController, :index, translations: %{
   "es-ES" => "/empezar"
 }
