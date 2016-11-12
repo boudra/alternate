@@ -1,18 +1,22 @@
 defmodule Alternate.Plug do
 
-  @locales Application.get_env(:alternate, :locales, %{})
-  @gettext Application.get_env(:alternate, :gettext_module, nil)
-  @locale_assign_key Application.get_env(:alternate, :locale_assign_key, :alternate_locale)
+  def locale_assign_key do
+    Application.get_env(:alternate, :locale_assign_key, :alternate_locale)
+  end
+
+  def gettext do
+    Application.get_env(:alternate, :gettext_module, nil)
+  end
 
   def init(opts), do: opts
 
-  unless is_nil(@gettext) do
-    def call(%Plug.Conn{assigns: assigns} = conn, _opts) do
-      case Map.get(assigns, @locale_assign_key, nil) do
+  def call(%Plug.Conn{assigns: assigns} = conn, _opts) do
+    unless is_nil(gettext) do
+      case Map.get(assigns, locale_assign_key, nil) do
         nil ->
           conn
         locale ->
-          Gettext.put_locale(@gettext, locale)
+          Gettext.put_locale(gettext, locale)
           conn
       end
     end
