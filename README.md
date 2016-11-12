@@ -1,4 +1,4 @@
-[![Hex.pm](https://img.shields.io/hexpm/v/plug.svg)](https://hex.pm/packages/alternate)
+[![Hex.pm](https://img.shields.io/hexpm/v/alternate.svg)](https://hex.pm/packages/alternate)
 
 ------------------------------------
 
