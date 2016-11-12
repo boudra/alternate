@@ -15,7 +15,7 @@ Add `alternate` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:alternate, "~> 0.2.0"}]
+  [{:alternate, "~> 0.1.0"}]
 end
 ```
 
