@@ -5,6 +5,9 @@ defmodule Alternate.Controller do
       def init([ action: action, locale: _ ]) do
         action
       end
+      def init(opts) do
+        opts
+      end
     end
   end
 
