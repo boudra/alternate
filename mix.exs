@@ -33,6 +33,6 @@ defmodule Alternate.Mixfile do
     [ maintainers: ["Mohamed Boudra"],
       licenses: ["Apache License 2.0"],
       links: %{ "Github" => "https://github.com/boudra/alternate" },
-      files: ~w(lib priv web README.md mix.exs LICENSE.md)]
+      files: ~w(lib README.md mix.exs LICENSE.md)]
   end
 end
