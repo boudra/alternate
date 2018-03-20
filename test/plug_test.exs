@@ -1,5 +1,4 @@
 defmodule AlternatePlugTest do
-
   use ExUnit.Case
   use Phoenix.ConnTest
 
@@ -10,10 +9,11 @@ defmodule AlternatePlugTest do
   test "plug sets the Gettext locale" do
     Application.put_env(:alternate, :gettext_module, TestGettext)
     opts = Alternate.Plug.init(nil)
+
     build_conn
     |> assign(:alternate_locale, "en-US")
     |> Alternate.Plug.call(opts)
+
     assert Gettext.get_locale(TestGettext) == "en-US"
   end
-
 end
