@@ -1,7 +1,21 @@
 defmodule Alternate.Helpers do
-  @locale_assign_key Config.locale_assign_key()
+  def alternate_route(conn, type, locale, controller, action, params) do
+    router =
+      conn
+      |> Phoenix.Controller.router_module()
 
-  def alternate_route(conn, locale) do
+    helpers_module = String.to_atom("#{router}.Helpers")
+
+    helper_function = String.to_atom("#{controller}_#{type}")
+
+    apply(
+      helpers_module,
+      helper_function,
+      [conn, [action: action, locale: locale]] ++ params
+    )
+  end
+
+  def alternate_current_route(conn, type, locale) do
     route_params =
       conn.params
       |> Enum.reject(fn {k, _} ->
@@ -22,19 +36,19 @@ defmodule Alternate.Helpers do
       conn
       |> Phoenix.Controller.action_name()
 
-    router =
-      conn
-      |> Phoenix.Controller.router_module()
+    alternate_route(conn, type, locale, controller, action, route_params)
+  end
 
-    apply(
-      String.to_atom("#{router}.Helpers"),
-      String.to_atom("#{controller}_path"),
-      [conn, [action: action, locale: locale]] ++ route_params
-    )
+  def alternate_current_path(conn, locale) do
+    alternate_current_route(conn, "path", locale)
+  end
+
+  def alternate_current_url(conn, locale) do
+    alternate_current_route(conn, "url", locale)
   end
 
   def localize_plug_opts(%Plug.Conn{assigns: assigns} = _conn, opts) do
-    locale = Map.fetch!(assigns, @locale_assign_key)
+    locale = Map.fetch!(assigns, Config.locale_assign_key())
     [action: opts, locale: locale]
   end
 
