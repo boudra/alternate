@@ -1,28 +1,93 @@
 defmodule Alternate.Plug do
-  def locale_assign_key do
-    Application.get_env(:alternate, :locale_assign_key, :alternate_locale)
+  alias Alternate.{Config, Helpers}
+
+  import Plug.Conn
+
+  def init(%{} = opts) do
+    opts
+    |> Map.put_new(:assign_key, Config.locale_assign_key())
+    |> Map.put_new(:session_key, Config.locale_session_key())
+    |> Map.put_new(:gettext, Config.gettext())
   end
 
-  def gettext do
-    Application.get_env(:alternate, :gettext_module, nil)
+  def init(_) do
+    init(%{})
   end
 
-  def init(opts), do: opts
+  defp put_gettext_locale(
+         conn,
+         assign_key,
+         gettext_module
+       )
+       when is_atom(gettext_module) do
+    if locale = conn.assigns[assign_key] do
+      Gettext.put_locale(gettext_module, locale)
+    end
 
-  def call(%Plug.Conn{assigns: assigns} = conn, _opts) do
-    case gettext do
+    conn
+  end
+
+  defp put_gettext_locale(conn, _, nil) do
+    conn
+  end
+
+  defp put_session_locale(
+         conn,
+         assign_key,
+         session_key
+       )
+       when is_binary(session_key) do
+    case conn.assigns[assign_key] do
       nil ->
         conn
 
-      gettext ->
-        case Map.get(assigns, locale_assign_key, nil) do
-          nil ->
-            conn
-
-          locale ->
-            Gettext.put_locale(gettext, locale)
-            conn
-        end
+      locale ->
+        conn
+        |> put_session(session_key, locale)
     end
+  end
+
+  defp put_session_locale(conn, _, _) do
+    conn
+  end
+
+  defp redirect_to_localized_route(
+         conn,
+         assign_key,
+         session_key
+       )
+       when is_binary(session_key) do
+    case {conn.assigns[assign_key], get_session(conn, session_key)} do
+      {nil, locale} when is_binary(locale) ->
+        conn
+        |> put_resp_header("location", Helpers.alternate_route(conn, locale))
+        |> put_status(302)
+        |> halt()
+
+      _ ->
+        conn
+    end
+  end
+
+  defp redirect_to_localized_route(conn, _, _) do
+    conn
+  end
+
+  def call(%Plug.Conn{assigns: assigns} = conn, %{
+        gettext: gettext_module,
+        assign_key: assign_key,
+        session_key: session_key
+      }) do
+    conn
+    |> assign(assign_key, assigns[assign_key])
+    |> put_gettext_locale(assign_key, gettext_module)
+    |> put_session_locale(assign_key, session_key)
+    |> register_before_send(fn
+      %{status: 200, method: "GET"} ->
+        redirect_to_localized_route(conn, assign_key, session_key)
+
+      _ ->
+        conn
+    end)
   end
 end
