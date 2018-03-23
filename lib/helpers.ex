@@ -47,6 +47,14 @@ defmodule Alternate.Helpers do
     alternate_current_route(conn, "url", locale)
   end
 
+  def alternate_path(conn, locale, controller, action, params) do
+    alternate_route(conn, "path", locale, controller, action, params)
+  end
+
+  def alternate_url(conn, locale, controller, action, params) do
+    alternate_route(conn, "url", locale, controller, action, params)
+  end
+
   def localize_plug_opts(%Plug.Conn{assigns: assigns} = _conn, opts) do
     locale = Map.fetch!(assigns, Config.locale_assign_key())
     [action: opts, locale: locale]
