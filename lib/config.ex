@@ -4,7 +4,7 @@ defmodule Alternate.Config do
   end
 
   def locale_session_key() do
-    Application.get_env(:alternate, :locale_session_key, "alternate_locale")
+    Application.get_env(:alternate, :locale_session_key, nil)
   end
 
   def gettext() do
