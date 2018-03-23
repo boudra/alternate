@@ -60,7 +60,7 @@ defmodule Alternate.Plug do
     case {conn.assigns[assign_key], get_session(conn, session_key)} do
       {nil, locale} when is_binary(locale) ->
         conn
-        |> put_resp_header("location", Helpers.alternate_route(conn, locale))
+        |> put_resp_header("location", Helpers.alternate_current_url(conn, locale))
         |> put_status(302)
         |> halt()
 

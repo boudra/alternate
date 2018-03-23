@@ -1,4 +1,6 @@
 defmodule Alternate.Helpers do
+  alias Alternate.Config
+
   def alternate_route(conn, type, locale, controller, action, params) do
     router =
       conn
