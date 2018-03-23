@@ -4,7 +4,7 @@ defmodule Alternate.Mixfile do
   def project do
     [
       app: :alternate,
-      version: "0.1.6",
+      version: "0.1.7",
       elixir: "~> 1.3",
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       name: "Alternate",
