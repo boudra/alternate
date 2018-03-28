@@ -50,7 +50,8 @@ defmodule Alternate do
 
       options = build_options(options, locale)
 
-      {verb, meta, [path, plug, [action: plug_opts, locale: locale], build_options(options, nil)]}
+      {verb, meta,
+       [path, plug, [action: plug_opts, locale: locale], build_options(options, locale)]}
     end)
     |> Enum.concat([
       {verb, meta, [path, plug, plug_opts, build_options(options, nil)]}
