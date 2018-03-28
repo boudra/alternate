@@ -10,11 +10,21 @@ defmodule Alternate.Helpers do
 
     helper_function = String.to_atom("#{controller}_#{type}")
 
-    apply(
-      helpers_module,
-      helper_function,
-      [conn, [action: action, locale: locale]] ++ params
-    )
+    case locale do
+      nil ->
+        apply(
+          helpers_module,
+          helper_function,
+          [conn, action] ++ params
+        )
+
+      _ ->
+        apply(
+          helpers_module,
+          helper_function,
+          [conn, [action: action, locale: locale]] ++ params
+        )
+    end
   end
 
   def alternate_current_route(conn, type, locale) do
@@ -35,16 +45,21 @@ defmodule Alternate.Helpers do
         end)
       end)
 
+    query_params =
+      conn.query_params
+      |> Enum.to_list()
+
     route_params =
       original_path_info
       |> Enum.reduce([], fn
         ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
         _segment, params -> params
       end)
+      |> Enum.concat([query_params])
 
     original_path = "/" <> Enum.join(original_path_info, "/")
 
-    %{plug: controller_module, opts: [action: action, locale: _]} =
+    {controller_module, action} =
       routes
       |> Enum.find(fn
         %{path: ^original_path} ->
@@ -53,6 +68,13 @@ defmodule Alternate.Helpers do
         _route ->
           false
       end)
+      |> case do
+        %{plug: controller_module, opts: [action: action, locale: _]} ->
+          {controller_module, action}
+
+        %{plug: controller_module, opts: action} ->
+          {controller_module, action}
+      end
 
     controller =
       controller_module
