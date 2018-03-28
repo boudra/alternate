@@ -59,10 +59,16 @@ defmodule Alternate.Plug do
        when is_binary(session_key) do
     case {conn.assigns[assign_key], get_session(conn, session_key)} do
       {nil, locale} when is_binary(locale) ->
-        conn
-        |> put_status(302)
-        |> Phoenix.Controller.redirect(external: Helpers.alternate_current_url(conn, locale))
-        |> halt()
+        case Helpers.alternate_current_url(conn, locale) do
+          nil ->
+            conn
+
+          url ->
+            conn
+            |> put_status(302)
+            |> Phoenix.Controller.redirect(external: url)
+            |> halt()
+        end
 
       _ ->
         conn
@@ -83,10 +89,10 @@ defmodule Alternate.Plug do
     |> put_gettext_locale(assign_key, gettext_module)
     |> put_session_locale(assign_key, session_key)
     |> case do
-      %{method: "GET"} ->
+      conn = %{method: "GET"} ->
         redirect_to_localized_route(conn, assign_key, session_key)
 
-      _ ->
+      conn ->
         conn
     end
   end

@@ -55,11 +55,11 @@ defmodule Alternate.Helpers do
         ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
         _segment, params -> params
       end)
-      |> Enum.concat([query_params])
+      |> Enum.concat([query_params] |> Enum.reject(&Enum.empty?(&1)))
 
     original_path = "/" <> Enum.join(original_path_info, "/")
 
-    {controller_module, action} =
+    {helper, action} =
       routes
       |> Enum.find(fn
         %{path: ^original_path} ->
@@ -69,18 +69,30 @@ defmodule Alternate.Helpers do
           false
       end)
       |> case do
-        %{plug: controller_module, opts: [action: action, locale: _]} ->
-          {controller_module, action}
+        %{helper: helper, opts: [action: action, locale: _]} ->
+          {helper, action}
 
-        %{plug: controller_module, opts: action} ->
-          {controller_module, action}
+        %{helper: helper, opts: action} ->
+          {helper, action}
       end
 
-    controller =
-      controller_module
-      |> Phoenix.Naming.resource_name("Controller")
+    has_localized_route? =
+      Enum.any?(routes, fn route ->
+        route_action =
+          case route.opts do
+            [action: action, locale: _] -> action
+            action -> action
+          end
 
-    alternate_route(conn, type, locale, controller, action, route_params)
+        route.helper == helper && route_action == action &&
+          route.assigns[Config.locale_assign_key()] == locale
+      end)
+
+    if has_localized_route? do
+      alternate_route(conn, type, locale, helper, action, route_params)
+    else
+      nil
+    end
   end
 
   def alternate_current_path(conn, locale) do
