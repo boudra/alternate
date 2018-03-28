@@ -18,25 +18,45 @@ defmodule Alternate.Helpers do
   end
 
   def alternate_current_route(conn, type, locale) do
+    router =
+      conn
+      |> Phoenix.Controller.router_module()
+
+    path_params = conn.path_params
+
+    routes = router.__routes__
+
+    original_path_info =
+      path_params
+      |> Enum.reduce(conn.path_info, fn {k, v}, path ->
+        Enum.map(path, fn
+          ^v -> ":#{k}"
+          v -> v
+        end)
+      end)
+
     route_params =
-      conn.params
-      |> Enum.reject(fn {k, _} ->
-        conn.body_params |> Map.keys() |> Enum.member?(k)
+      original_path_info
+      |> Enum.reduce([], fn
+        ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
+        _segment, params -> params
       end)
-      |> Enum.reject(fn {k, _} ->
-        conn.query_params |> Map.keys() |> Enum.member?(k)
+
+    original_path = "/" <> Enum.join(original_path_info, "/")
+
+    %{plug: controller_module, opts: [action: action, locale: _]} =
+      routes
+      |> Enum.find(fn
+        %{path: ^original_path} ->
+          true
+
+        _route ->
+          false
       end)
-      |> Map.new()
-      |> Map.values()
 
     controller =
-      conn
-      |> Phoenix.Controller.controller_module()
+      controller_module
       |> Phoenix.Naming.resource_name("Controller")
-
-    action =
-      conn
-      |> Phoenix.Controller.action_name()
 
     alternate_route(conn, type, locale, controller, action, route_params)
   end
