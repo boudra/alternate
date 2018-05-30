@@ -20,8 +20,15 @@ defmodule Alternate.Plug do
          gettext_module
        )
        when is_atom(gettext_module) do
-    if locale = conn.assigns[assign_key] do
-      Gettext.put_locale(gettext_module, locale)
+    with nil <- conn.assigns[assign_key],
+         fallback_locale when is_nil(fallback_locale) != nil <- Config.default_fallback_locale() do
+      Gettext.put_locale(gettext_module, fallback_locale)
+    else
+      nil ->
+        raise "Define a fallback_locale"
+
+      locale ->
+        Gettext.put_locale(gettext_module, locale)
     end
 
     conn

@@ -112,8 +112,16 @@ defmodule Alternate.Helpers do
   end
 
   def localize_plug_opts(%Plug.Conn{assigns: assigns} = _conn, opts) do
-    locale = Map.fetch!(assigns, Config.locale_assign_key())
-    [action: opts, locale: locale]
+    case Map.fetch(assigns, Config.locale_assign_key()) do
+      {:ok, nil} ->
+        opts
+
+      {:ok, locale} ->
+        [action: opts, locale: locale]
+
+      :error ->
+        opts
+    end
   end
 
   defmacro localize({helper, meta, [conn, opts | rest]}) do

@@ -21,7 +21,7 @@ defmodule Alternate do
 
   defp build_options(options, locale) do
     quote do
-      assigns_with_locale = Map.new([{unquote(locale_assign_key), unquote(locale)}])
+      assigns_with_locale = Map.new([{unquote(locale_assign_key()), unquote(locale)}])
 
       assigns =
         Keyword.get(unquote(options), :assigns, %{})
@@ -32,7 +32,7 @@ defmodule Alternate do
   end
 
   defp do_localize({verb, meta, [path, plug, plug_opts, options]}) do
-    locales
+    locales()
     |> Enum.to_list()
     |> Enum.map(fn {locale, config} ->
       path =
