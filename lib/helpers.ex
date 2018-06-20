@@ -28,9 +28,7 @@ defmodule Alternate.Helpers do
   end
 
   def alternate_current_route(conn, type, locale) do
-    router =
-      conn
-      |> Phoenix.Controller.router_module()
+    router = Phoenix.Controller.router_module(conn)
 
     path_params = conn.path_params
 
@@ -45,17 +43,13 @@ defmodule Alternate.Helpers do
         end)
       end)
 
-    query_params =
-      conn.query_params
-      |> Enum.to_list()
+    query_params = Enum.to_list(conn.query_params)
 
     route_params =
-      original_path_info
-      |> Enum.reduce([], fn
+      Enum.reduce(original_path_info, [], fn
         ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
         _segment, params -> params
-      end)
-      |> Enum.concat([query_params] |> Enum.reject(&Enum.empty?(&1)))
+      end) ++ [query_params]
 
     original_path = "/" <> Enum.join(original_path_info, "/")
 
@@ -112,8 +106,16 @@ defmodule Alternate.Helpers do
   end
 
   def localize_plug_opts(%Plug.Conn{assigns: assigns} = _conn, opts) do
-    locale = Map.fetch!(assigns, Config.locale_assign_key())
-    [action: opts, locale: locale]
+    case Map.fetch(assigns, Config.locale_assign_key()) do
+      {:ok, nil} ->
+        opts
+
+      {:ok, locale} ->
+        [action: opts, locale: locale]
+
+      :error ->
+        opts
+    end
   end
 
   defmacro localize({helper, meta, [conn, opts | rest]}) do

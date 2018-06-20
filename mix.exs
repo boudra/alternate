@@ -5,7 +5,7 @@ defmodule Alternate.Mixfile do
     [
       app: :alternate,
       version: "0.1.7",
-      elixir: "~> 1.3",
+      elixir: "~> 1.6",
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       name: "Alternate",
       docs: [extras: ["README.md"], main: "Alternate"],
@@ -25,7 +25,7 @@ defmodule Alternate.Mixfile do
 
   defp deps do
     [
-      {:phoenix, "~> 1.1"},
+      {:phoenix, "~> 1.3"},
       {:gettext, "~> 0.9"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
