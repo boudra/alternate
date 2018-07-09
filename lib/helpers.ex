@@ -38,9 +38,17 @@ defmodule Alternate.Helpers do
       path_params
       |> Enum.reduce(conn.path_info, fn {k, v}, path ->
         Enum.map(path, fn
-          ^v -> ":#{k}"
-          v -> v
+          ^v ->
+            ":#{k}"
+
+          route_element ->
+            if is_list(v) and route_element in v do
+              "*#{k}"
+            else
+              route_element
+            end
         end)
+        |> Enum.uniq()
       end)
 
     query_params = Enum.to_list(conn.query_params)
