@@ -56,6 +56,7 @@ defmodule Alternate.Helpers do
     route_params =
       Enum.reduce(original_path_info, [], fn
         ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
+        "*" <> key, params -> params ++ [Map.get(path_params, key, nil)]
         _segment, params -> params
       end) ++ [query_params]
 
