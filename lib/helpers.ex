@@ -37,7 +37,9 @@ defmodule Alternate.Helpers do
     original_path_info =
       path_params
       |> Enum.reduce(conn.path_info, fn {k, v}, path ->
-        Enum.map(path, fn
+        path
+        |> Enum.map(&URI.decode_www_form/1)
+        |> Enum.map(fn
           ^v ->
             ":#{k}"
 
