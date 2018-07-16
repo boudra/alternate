@@ -42,6 +42,8 @@ defmodule Alternate.Helpers do
             ":#{k}"
 
           route_element ->
+            route_element = URI.decode_www_form(route_element)
+
             if is_list(v) and route_element in v do
               "*#{k}"
             else
