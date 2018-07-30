@@ -8,9 +8,9 @@ defmodule AlternatePlugTest do
 
   test "plug sets the Gettext locale" do
     Application.put_env(:alternate, :gettext_module, TestGettext)
-    opts = Alternate.Plug.init(nil)
+    opts = Alternate.Plug.init([])
 
-    build_conn
+    build_conn()
     |> assign(:alternate_locale, "en-US")
     |> Alternate.Plug.call(opts)
 
