@@ -66,9 +66,12 @@ defmodule Alternate.Helpers do
 
     original_path = "/" <> Enum.join(original_path_info, "/")
 
-    {helper, action} =
+    found_route =
       routes
       |> Enum.find(fn
+        %{helper: nil} ->
+          false
+
         %{path: ^original_path} ->
           true
 
@@ -81,24 +84,33 @@ defmodule Alternate.Helpers do
 
         %{helper: helper, opts: action} ->
           {helper, action}
+
+        _ ->
+          nil
       end
 
-    has_localized_route? =
-      Enum.any?(routes, fn route ->
-        route_action =
-          case route.opts do
-            [action: action, locale: _] -> action
-            action -> action
-          end
+    case found_route do
+      {helper, action} ->
+        has_localized_route? =
+          Enum.any?(routes, fn route ->
+            route_action =
+              case route.opts do
+                [action: action, locale: _] -> action
+                action -> action
+              end
 
-        route.helper == helper && route_action == action &&
-          route.assigns[Config.locale_assign_key()] == locale
-      end)
+            route.helper == helper && route_action == action &&
+              route.assigns[Config.locale_assign_key()] == locale
+          end)
 
-    if has_localized_route? do
-      alternate_route(conn, type, locale, helper, action, route_params)
-    else
-      nil
+        if has_localized_route? do
+          alternate_route(conn, type, locale, helper, action, route_params)
+        else
+          nil
+        end
+
+      _ ->
+        nil
     end
   end
 
