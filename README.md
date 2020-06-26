@@ -47,7 +47,7 @@ import Alternate
 this will let you be able to use the `localize` macro in your routes like this:
 
 ```elixir
-localize get "/", PageController, :index
+localize(get("/", PageController, :index))
 ```
 
 if we run `mix phoenix.routes` we'll see that it created all the routes for our defined locales:
@@ -66,15 +66,15 @@ plug Alternate.Plug
 
 Now when you load `http://exmple.com/gb` the `:locale` assign will be equal to `"en-GB"`, and your Gettext locale will be set to `"en-GB"` automatically.
 
-If we want to specify different text routes for different locales we can do it like this:
+If we want to specify route translations we can do it like this:
 
 ```elixir
-localize get "/start", PageController, :index, translations: %{
+localize(get("/start", PageController, :index), translations: %{
   "es-ES" => "/empezar"
-}
+})
 ```
 
-The locales that you don't define in the `translations` map will use the `/start` route to match.
+The locales that you don't define in the `translations` map will use the default route to match (`/start` in this case).
 
 ## Controller
 
@@ -92,10 +92,12 @@ To generate localized routes we'll need to add this:
 import Alternate.Helpers
 ```
 
-to our `controller` and `view` sections of our `web/web.ex`
+to our `controller` and `view` sections of our `web/web.ex`.
 
-now similarly to the routing, we can use `localize` to generate translated paths and urls:
+Now similarly to the routing, we can use `localize` to generate translated paths and urls:
 
 ```elixir
-localize page_path(conn, :index)
+localize(Routes.page_path(conn, :index))
 ```
+
+This will automatically translate and add the right prefix depending on the locale the user is on.
