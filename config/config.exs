@@ -7,3 +7,5 @@ config :alternate,
   session_assign_key: nil,
   gettext_module: Alternate.Gettext,
   gettext_domain: "default"
+
+config :phoenix, :json_library, Jason

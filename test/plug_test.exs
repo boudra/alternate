@@ -1,6 +1,7 @@
 defmodule AlternatePlugTest do
   use ExUnit.Case
-  use Phoenix.ConnTest
+  import Plug.Conn
+  import Phoenix.ConnTest
 
   defmodule TestGettext do
     use Gettext, otp_app: :alternate

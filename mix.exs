@@ -20,13 +20,14 @@ defmodule Alternate.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [extra_applications: [:logger]]
   end
 
   defp deps do
     [
-      {:phoenix, "~> 1.3"},
-      {:gettext, "~> 0.9"},
+      {:phoenix, "~> 1.5"},
+      {:jason, "~> 1.0"},
+      {:gettext, "~> 0.18"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
