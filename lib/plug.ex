@@ -1,106 +1,123 @@
 defmodule Alternate.Plug do
-  alias Alternate.{Config, Helpers}
+  alias Alternate.{Helpers}
 
   import Plug.Conn
 
-  def init(%{} = opts) do
+  def init(opts) do
     opts
-    |> Map.put_new(:assign_key, Config.locale_assign_key())
-    |> Map.put_new(:session_key, Config.locale_session_key())
-    |> Map.put_new(:gettext, Config.gettext())
+    |> Keyword.update(:locales, [], fn locales ->
+      Enum.into(locales, %{}, fn
+        kv = {_, _} ->
+          kv
+
+        locale ->
+          {locale, locale}
+      end)
+    end)
   end
 
-  def init(_) do
-    init(%{})
-  end
-
-  defp put_gettext_locale(
-         conn,
-         assign_key,
-         gettext_module
-       )
-       when is_atom(gettext_module) do
-    with nil <- conn.assigns[assign_key],
-         fallback_locale when is_nil(fallback_locale) != nil <- Config.default_fallback_locale() do
-      Gettext.put_locale(gettext_module, fallback_locale)
-    else
-      nil ->
-        raise "Define a fallback_locale"
-
-      locale ->
-        Gettext.put_locale(gettext_module, locale)
-    end
+  defp put_gettext_locale(conn, gettext, locale) when is_atom(gettext) do
+    Gettext.put_locale(gettext, locale)
 
     conn
   end
 
-  defp put_gettext_locale(conn, _, nil) do
+  defp put_gettext_locale(conn, _, _) do
     conn
   end
 
-  defp put_session_locale(
-         conn,
-         assign_key,
-         session_key
-       )
-       when is_binary(session_key) do
-    case conn.assigns[assign_key] do
+  defp redirect_to_localized_route(conn, locale) do
+    case Helpers.alternate_current_path(conn, locale) do
       nil ->
         conn
 
-      locale ->
+      url ->
         conn
-        |> put_session(session_key, locale)
+        |> put_status(302)
+        |> Phoenix.Controller.redirect(external: url)
+        |> halt()
     end
   end
 
-  defp put_session_locale(conn, _, _) do
+  defp persist_locale(conn, {:session, key}, locale) do
     conn
+    |> put_session(key, locale)
   end
 
-  defp redirect_to_localized_route(
-         conn,
-         assign_key,
-         session_key
-       )
-       when is_binary(session_key) do
-    case {conn.assigns[assign_key], get_session(conn, session_key)} do
-      {nil, locale} when is_binary(locale) ->
-        case Helpers.alternate_current_url(conn, locale) do
-          nil ->
-            conn
-
-          url ->
-            conn
-            |> put_status(302)
-            |> Phoenix.Controller.redirect(external: url)
-            |> halt()
-        end
+  defp persist_locale(conn, {:cookie, key}, locale) do
+    case Map.get(conn.req_cookies, key) do
+      ^locale ->
+        conn
 
       _ ->
-        conn
+        put_resp_cookie(conn, key, locale)
     end
   end
 
-  defp redirect_to_localized_route(conn, _, _) do
+  def put_locale(conn, opts, locale) do
     conn
+    |> assign(:locale, locale)
+    |> persist_locale(Keyword.get(opts, :persist), locale)
+    |> put_gettext_locale(Keyword.get(opts, :gettext), locale)
   end
 
-  def call(%Plug.Conn{assigns: assigns} = conn, %{
-        gettext: gettext_module,
-        assign_key: assign_key,
-        session_key: session_key
-      }) do
-    conn
-    |> assign(assign_key, assigns[assign_key])
-    |> put_gettext_locale(assign_key, gettext_module)
-    |> put_session_locale(assign_key, session_key)
-    |> case do
-      conn = %{method: "GET"} ->
-        redirect_to_localized_route(conn, assign_key, session_key)
+  # Specifing the locale in the path overrides everything else
+  def call(conn, opts) do
+    default_locale = Keyword.get(opts, :default_locale)
+    path_locale = from_prefix(conn, opts)
 
-      conn ->
-        conn
+    current_locale =
+      path_locale || from_persisted(conn, opts) || from_accept_language(conn, opts) ||
+        default_locale
+
+    cond do
+      current_locale != path_locale && conn.method in ~w(GET HEAD) ->
+        redirect_to_localized_route(conn, current_locale)
+
+      true ->
+        put_locale(conn, opts, current_locale)
+    end
+  end
+
+  def from_prefix(%Plug.Conn{path_params: %{"locale" => prefix}}, opts) do
+    opts
+    |> Keyword.get(:locales)
+    |> Map.get(prefix)
+  end
+
+  def from_prefix(_conn, _opts) do
+    nil
+  end
+
+  defp persisted_locale(conn, {:session, key}) do
+    get_session(conn, key)
+  end
+
+  defp persisted_locale(conn, {:cookie, key}) do
+    Map.get(conn.req_cookies, key)
+  end
+
+  def from_persisted(conn = %Plug.Conn{}, opts) do
+    persisted_locale(conn, Keyword.get(opts, :persist))
+  end
+
+  def from_accept_language(conn, opts) do
+    with [header | _] <- get_req_header(conn, "accept-language"),
+         languages <- :cow_http_hd.parse_accept_language(header) do
+      available_locales = Keyword.get(opts, :locales)
+
+      Enum.find_value(languages, fn {locale, _} ->
+        case String.split(locale, "-") do
+          [lang, _] ->
+            Map.get(available_locales, locale) || Map.get(available_locales, lang)
+
+          _ ->
+            Map.get(available_locales, locale)
+        end
+      end)
+    else
+      _ ->
+        nil
     end
   end
 end

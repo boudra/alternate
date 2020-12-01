@@ -28,6 +28,7 @@ defmodule Alternate.Mixfile do
       {:phoenix, "~> 1.5"},
       {:jason, "~> 1.0"},
       {:gettext, "~> 0.18"},
+      {:cowlib, "~> 2.0"},
       {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end

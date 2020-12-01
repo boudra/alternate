@@ -1,58 +1,29 @@
 defmodule Alternate.Router do
-  defmacro __using__(opts) do
-    opts =
-      opts
-      |> Keyword.update(:locales, [], fn locales ->
-        Enum.into(locales, %{}, fn
-          kv = {_, _} ->
-            kv
-
-          locale ->
-            {locale, locale}
-        end)
-        |> Macro.escape()
-      end)
-
+  defmacro __using__(_opts) do
     quote do
-      import Alternate.Router
-      @alternate_opts unquote(opts)
+      @before_compile Alternate.Router
     end
   end
 
-  defp do_localize(router, {verb, meta, [path, plug, plug_opts]}) do
-    do_localize(router, {verb, meta, [path, plug, plug_opts, []]})
-  end
+  defmacro __before_compile__(env) do
+    routes =
+      env.module
+      |> Module.get_attribute(:phoenix_routes)
+      |> Enum.each(fn route = %{path: path} ->
+        unlocalised_path =
+          case Regex.replace(~r/\/:locale/, path, "") do
+            "" -> "/"
+            path -> path
+          end
 
-  defp do_localize(router, {verb, meta, [path, plug, plug_opts, options]}) do
-
-    router
-    |> Module.get_attribute(:alternate_opts)
-    |> Keyword.get(:locales)
-    |> Enum.map(fn {prefix, locale} ->
-      path =
-        quote do
-          translated_path =
-            Gettext.with_locale(unquote(locale), fn ->
-              Keyword.get(@alternate_opts, :gettext).gettext(unquote(path))
-            end)
-
-          case unquote(prefix) do
-            "" -> ""
-            prefix -> "/#{prefix}"
-          end <> translated_path
+        if unlocalised_path != path do
+          Module.put_attribute(env.module, :phoenix_routes, %{
+            route
+            | path: unlocalised_path
+          })
         end
+      end)
 
-      {verb, meta, [path, plug, [action: plug_opts, locale: locale], options]}
-    end)
-    |> Enum.concat([
-      {verb, meta, [path, plug, plug_opts, options]}
-    ])
-  end
-
-  defmacro localize(args) do
-    do_localize(
-      __CALLER__.module,
-      args
-    )
+    nil
   end
 end

@@ -6,30 +6,40 @@ defmodule PageController do
   use Phoenix.Controller
 
   def index(conn, _params) do
-    text(conn, "hello world!")
+    body =
+      case conn.assigns.locale do
+        "en" -> "hello world!"
+        "es" -> "hola mundo!"
+      end
+
+    text(conn, body)
   end
 end
 
 defmodule Router do
-  is = 2
-
-  use Alternate.Router,
-    locales: ["en", "es"],
-    gettext: TestGettext,
-    x: "what#{is}",
-    persist: {:cookie, "locale"}
-
+  use Alternate.Router
   use Phoenix.Router
 
   pipeline :browser do
-    plug Alternate.Plug
+    plug(Alternate.Plug,
+      locales: ["en", "es"],
+      default_locale: "en",
+      gettext: TestGettext,
+      persist: {:cookie, "locale"}
+    )
   end
 
-  scope "/" do
-    pipe_through :browser
+  scope "/:locale" do
+    pipe_through(:browser)
 
-    localize(get("/", PageController, :index))
+    get("/", PageController, :index)
   end
+end
+
+defmodule Endpoint do
+  use Phoenix.Endpoint, otp_app: :alternate
+
+  plug(Router)
 end
 
 defmodule AlternateRouterTest do
@@ -39,8 +49,45 @@ defmodule AlternateRouterTest do
 
   @endpoint Router
 
-  test "plug sets the Gettext locale" do
+  test "set locale via path param" do
+    conn = get(build_conn(), "/en")
+    assert conn.resp_body =~ "hello world!"
+
+    conn = get(build_conn(), "/es")
+    assert conn.resp_body =~ "hola mundo!"
+  end
+
+  test "default locale" do
     conn = get(build_conn(), "/")
-    assert conn.resp_body =~ "hello world"
+    assert conn.resp_body =~ "hello world!"
+  end
+
+  test "set locale via accept language" do
+    conn =
+      build_conn()
+      |> put_req_header("accept-language", "es-ES")
+      |> get("/")
+
+    assert redirected_to(conn, 302) =~ "/es"
+  end
+
+  test "plug redirects to persisted locale" do
+    conn =
+      build_conn()
+      |> put_req_cookie("locale", "es")
+      |> fetch_cookies()
+      |> get("/")
+
+    assert redirected_to(conn, 302) =~ "/es"
+  end
+
+  test "override persisted locale" do
+    conn =
+      build_conn()
+      |> put_req_cookie("locale", "es")
+      |> fetch_cookies()
+      |> get("/en")
+
+    assert conn.resp_body =~ "hello world!"
   end
 end
