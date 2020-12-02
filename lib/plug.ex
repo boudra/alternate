@@ -74,8 +74,10 @@ defmodule Alternate.Plug do
     end
   end
 
-  def from_prefix(%Plug.Conn{assigns: %{locale: locale}}, opts) do
-    locale
+  def from_prefix(%Plug.Conn{path_params: %{"locale" => prefix}}, opts) do
+    opts
+    |> Keyword.get(:locales)
+    |> Map.get(prefix)
   end
 
   def from_prefix(_conn, _opts) do

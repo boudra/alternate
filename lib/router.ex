@@ -23,10 +23,8 @@ defmodule Alternate.Router do
         unquote(context)
       end
 
-      for {prefix, locale} <- Keyword.get(opts, :locales) do
-        scope [path: "/#{prefix}", assigns: %{locale: locale}, private: %{alternate_config: opts}] do
-          unquote(context)
-        end
+      scope [path: "/:locale", private: %{alternate_config: opts}] do
+        unquote(context)
       end
     end
   end

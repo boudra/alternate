@@ -47,7 +47,7 @@ defmodule Alternate.Helpers do
             []
           end
 
-        route_params = path_params ++ query_params
+        route_params = [locale, path_params] ++ query_params
 
         alternate_route(
           conn,
@@ -74,27 +74,5 @@ defmodule Alternate.Helpers do
 
   def alternate_url(conn, locale, controller, action, params) do
     alternate_route(conn, "url", locale, controller, action, params)
-  end
-
-  def localize_plug_opts(%Plug.Conn{assigns: assigns} = _conn, opts) do
-    case Map.fetch(assigns, "locale") do
-      {:ok, nil} ->
-        opts
-
-      {:ok, locale} ->
-        [action: opts, locale: locale]
-
-      :error ->
-        opts
-    end
-  end
-
-  defmacro localize({helper, meta, [conn, opts | rest]}) do
-    plug_opts =
-      quote do
-        Alternate.Helpers.localize_plug_opts(unquote(conn), unquote(opts))
-      end
-
-    {helper, meta, [conn, plug_opts, rest]}
   end
 end

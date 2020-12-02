@@ -19,10 +19,10 @@ defmodule PageController do
     body = """
     lorem ipsum dolor sit amet
 
-    #{Router.Helpers.page_url(conn, :index)}
+    #{Router.Helpers.page_url(conn, :index, conn.assigns.locale)}
     """
 
-    text(conn, "whatWhat")
+    text(conn, body)
   end
 end
 
@@ -73,9 +73,9 @@ defmodule AlternateRouterTest do
     conn =
       build_conn()
       |> put_private(:phoenix_router_url, "https://example.com")
-      |> get( "/about")
+      |> get("/es/about")
 
-    assert conn.resp_body =~ "whatWhat"
+    assert conn.resp_body =~ "https://example.com/es"
   end
 
   test "set locale via accept language" do
