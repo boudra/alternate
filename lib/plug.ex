@@ -3,17 +3,8 @@ defmodule Alternate.Plug do
 
   import Plug.Conn
 
-  def init(opts) do
-    opts
-    |> Keyword.update(:locales, [], fn locales ->
-      Enum.into(locales, %{}, fn
-        kv = {_, _} ->
-          kv
-
-        locale ->
-          {locale, locale}
-      end)
-    end)
+  def init([]) do
+    []
   end
 
   defp put_gettext_locale(conn, gettext, locale) when is_atom(gettext) do
@@ -61,28 +52,30 @@ defmodule Alternate.Plug do
     |> put_gettext_locale(Keyword.get(opts, :gettext), locale)
   end
 
+  def call(conn = %{private: %{alternate_config: opts}}, []) do
+    do_call(conn, opts)
+  end
+
   # Specifing the locale in the path overrides everything else
-  def call(conn, opts) do
+  def do_call(conn, opts) do
+    enforce_locale = Keyword.get(opts, :enforce_locale)
     default_locale = Keyword.get(opts, :default_locale)
     path_locale = from_prefix(conn, opts)
 
     current_locale =
-      path_locale || from_persisted(conn, opts) || from_accept_language(conn, opts) ||
-        default_locale
+      path_locale || from_persisted(conn, opts) || from_accept_language(conn, opts) || (enforce_locale && default_locale)
 
     cond do
-      current_locale != path_locale && conn.method in ~w(GET HEAD) ->
+      current_locale && current_locale != path_locale && conn.method in ~w(GET HEAD) ->
         redirect_to_localized_route(conn, current_locale)
 
       true ->
-        put_locale(conn, opts, current_locale)
+        put_locale(conn, opts, current_locale || default_locale)
     end
   end
 
-  def from_prefix(%Plug.Conn{path_params: %{"locale" => prefix}}, opts) do
-    opts
-    |> Keyword.get(:locales)
-    |> Map.get(prefix)
+  def from_prefix(%Plug.Conn{assigns: %{locale: locale}}, opts) do
+    locale
   end
 
   def from_prefix(_conn, _opts) do

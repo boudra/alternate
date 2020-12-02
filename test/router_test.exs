@@ -14,32 +14,39 @@ defmodule PageController do
 
     text(conn, body)
   end
+
+  def about(conn, _params) do
+    body = """
+    lorem ipsum dolor sit amet
+
+    #{Router.Helpers.page_url(conn, :index)}
+    """
+
+    text(conn, "whatWhat")
+  end
 end
 
 defmodule Router do
-  use Alternate.Router
   use Phoenix.Router
+  use Alternate.Router
 
-  pipeline :browser do
-    plug(Alternate.Plug,
+  pipeline(:browser) do
+    plug(Alternate.Plug)
+  end
+
+  scope "/" do
+    pipe_through(:browser)
+
+    localized_scope(
       locales: ["en", "es"],
       default_locale: "en",
       gettext: TestGettext,
       persist: {:cookie, "locale"}
-    )
+    ) do
+      get("/", PageController, :index)
+      get("/about", PageController, :about)
+    end
   end
-
-  scope "/:locale" do
-    pipe_through(:browser)
-
-    get("/", PageController, :index)
-  end
-end
-
-defmodule Endpoint do
-  use Phoenix.Endpoint, otp_app: :alternate
-
-  plug(Router)
 end
 
 defmodule AlternateRouterTest do
@@ -60,6 +67,15 @@ defmodule AlternateRouterTest do
   test "default locale" do
     conn = get(build_conn(), "/")
     assert conn.resp_body =~ "hello world!"
+  end
+
+  test "link" do
+    conn =
+      build_conn()
+      |> put_private(:phoenix_router_url, "https://example.com")
+      |> get( "/about")
+
+    assert conn.resp_body =~ "whatWhat"
   end
 
   test "set locale via accept language" do

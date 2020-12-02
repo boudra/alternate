@@ -47,7 +47,7 @@ defmodule Alternate.Helpers do
             []
           end
 
-        route_params = [locale, path_params] ++ query_params
+        route_params = path_params ++ query_params
 
         alternate_route(
           conn,
