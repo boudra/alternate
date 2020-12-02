@@ -75,4 +75,13 @@ defmodule Alternate.Helpers do
   def alternate_url(conn, locale, controller, action, params) do
     alternate_route(conn, "url", locale, controller, action, params)
   end
+
+  defmacro localize(args = {helper, meta, [conn, opts | rest]}) do
+    locale =
+      quote do
+        unquote(conn).assigns[:locale]
+      end
+
+    {helper, meta, [conn, opts, locale | rest]}
+  end
 end

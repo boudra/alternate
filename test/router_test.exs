@@ -5,6 +5,8 @@ end
 defmodule PageController do
   use Phoenix.Controller
 
+  import Alternate.Helpers
+
   def index(conn, _params) do
     body =
       case conn.assigns.locale do
@@ -19,7 +21,7 @@ defmodule PageController do
     body = """
     lorem ipsum dolor sit amet
 
-    #{Router.Helpers.page_url(conn, :index, conn.assigns.locale)}
+    #{localize(Router.Helpers.page_url(conn, :index))}
     """
 
     text(conn, body)
