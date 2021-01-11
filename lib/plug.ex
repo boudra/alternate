@@ -48,8 +48,8 @@ defmodule Alternate.Plug do
   def put_locale(conn, opts, locale) do
     conn
     |> assign(:locale, locale)
-    |> persist_locale(Keyword.get(opts, :persist), locale)
-    |> put_gettext_locale(Keyword.get(opts, :gettext), locale)
+    |> persist_locale(Map.get(opts, :persist), locale)
+    |> put_gettext_locale(Map.get(opts, :gettext), locale)
   end
 
   def call(conn = %{private: %{alternate_config: opts}}, []) do
@@ -58,8 +58,8 @@ defmodule Alternate.Plug do
 
   # Specifing the locale in the path overrides everything else
   def do_call(conn, opts) do
-    enforce_locale = Keyword.get(opts, :enforce_locale)
-    default_locale = Keyword.get(opts, :default_locale)
+    enforce_locale = Map.get(opts, :enforce_locale)
+    default_locale = Map.get(opts, :default_locale)
     path_locale = from_prefix(conn, opts)
 
     current_locale =
@@ -76,7 +76,7 @@ defmodule Alternate.Plug do
 
   def from_prefix(%Plug.Conn{path_params: %{"locale" => prefix}}, opts) do
     opts
-    |> Keyword.get(:locales)
+    |> Map.get(:locales)
     |> Map.get(prefix)
   end
 
@@ -93,13 +93,13 @@ defmodule Alternate.Plug do
   end
 
   def from_persisted(conn = %Plug.Conn{}, opts) do
-    persisted_locale(conn, Keyword.get(opts, :persist))
+    persisted_locale(conn, Map.get(opts, :persist))
   end
 
   def from_accept_language(conn, opts) do
     with [header | _] <- get_req_header(conn, "accept-language"),
          languages <- :cow_http_hd.parse_accept_language(header) do
-      available_locales = Keyword.get(opts, :locales)
+      available_locales = Map.get(opts, :locales)
 
       Enum.find_value(languages, fn {locale, _} ->
         case String.split(locale, "-") do

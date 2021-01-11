@@ -8,22 +8,35 @@ defmodule Alternate.Router do
 
   defmacro localized_scope(opts, do: context) do
     quote do
-      opts = unquote(opts)
-        |> Keyword.update(:locales, [], fn locales ->
-          Enum.into(locales, %{}, fn
-            kv = {_, _} ->
-              kv
+      locales =
+        Enum.into(Keyword.get(unquote(opts), :locales), %{}, fn
+          kv = {_, _} ->
+            kv
 
-            locale ->
-              {locale, locale}
-          end)
+          locale ->
+            {locale, locale}
         end)
 
-      scope [path: "/", private: %{alternate_config: opts}] do
+      prefixes =
+        Enum.into(Keyword.get(unquote(opts), :locales), %{}, fn
+          {k, v} ->
+            {v, k}
+
+          locale ->
+            {locale, locale}
+        end)
+
+      opts =
+        unquote(opts)
+        |> Keyword.put(:locales, locales)
+        |> Keyword.put(:prefixes, prefixes)
+        |> Map.new()
+
+      scope path: "/:locale", private: %{alternate_config: opts} do
         unquote(context)
       end
 
-      scope [path: "/:locale", private: %{alternate_config: opts}] do
+      scope path: "/", private: %{alternate_config: opts} do
         unquote(context)
       end
     end

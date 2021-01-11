@@ -18,11 +18,7 @@ defmodule PageController do
   end
 
   def about(conn, _params) do
-    body = """
-    lorem ipsum dolor sit amet
-
-    #{localize(Router.Helpers.page_url(conn, :index))}
-    """
+    body = localize(Router.Helpers.page_url(conn, :index))
 
     text(conn, body)
   end
@@ -40,7 +36,7 @@ defmodule Router do
     pipe_through(:browser)
 
     localized_scope(
-      locales: ["en", "es"],
+      locales: %{"en" => "en-GB", "es" => "es-ES"},
       default_locale: "en",
       gettext: TestGettext,
       persist: {:cookie, "locale"}
@@ -77,7 +73,7 @@ defmodule AlternateRouterTest do
       |> put_private(:phoenix_router_url, "https://example.com")
       |> get("/es/about")
 
-    assert conn.resp_body =~ "https://example.com/es"
+    assert conn.resp_body == "https://example.com/es"
   end
 
   test "set locale via accept language" do

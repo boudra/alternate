@@ -1,6 +1,10 @@
 defmodule Alternate.Helpers do
   alias Alternate.Config
 
+  def locale_to_prefix(conn = %{private: %{alternate_config: %{prefixes: prefixes}}}, locale) do
+    Map.get(prefixes, locale)
+  end
+
   def alternate_route(conn, type, locale, controller, action, params) do
     router =
       conn
@@ -9,6 +13,13 @@ defmodule Alternate.Helpers do
     helpers_module = String.to_atom("#{router}.Helpers")
 
     helper_function = String.to_atom("#{controller}_#{type}")
+
+    params =
+      if is_nil(locale) do
+        params
+      else
+        [locale_to_prefix(conn, locale) | params]
+      end
 
     apply(
       helpers_module,
@@ -24,12 +35,15 @@ defmodule Alternate.Helpers do
 
     routes = router.__routes__
 
-    case Phoenix.Router.route_info(router, conn.method, conn.request_path, conn.host) do
+    case (Phoenix.Router.route_info(router, conn.method, conn.request_path, conn.host)) do
       route ->
         path_params =
           route.route
           |> String.split("/")
           |> Enum.flat_map(fn
+            ":locale" ->
+              []
+
             ":" <> key ->
               [Map.get(route.path_params, key)]
 
@@ -42,12 +56,12 @@ defmodule Alternate.Helpers do
 
         query_params =
           unless match?(%Plug.Conn.Unfetched{}, conn.query_params) do
-            Enum.to_list(conn.query_params)
+            [Enum.to_list(conn.query_params)]
           else
             []
           end
 
-        route_params = [locale, path_params] ++ query_params
+        route_params = path_params ++ query_params
 
         alternate_route(
           conn,
@@ -77,11 +91,17 @@ defmodule Alternate.Helpers do
   end
 
   defmacro localize(args = {helper, meta, [conn, opts | rest]}) do
-    locale =
-      quote do
-        unquote(conn).assigns[:locale]
-      end
+    quote do
+      case unquote(conn).assigns[:locale] do
+        nil ->
+          unquote(args)
 
-    {helper, meta, [conn, opts, locale | rest]}
+        locale ->
+          prefix =
+            Alternate.Helpers.locale_to_prefix(unquote(conn), locale)
+
+          unquote({helper, meta, [conn, opts, (quote do: prefix) | rest]})
+      end
+    end
   end
 end
