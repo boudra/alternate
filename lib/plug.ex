@@ -56,6 +56,10 @@ defmodule Alternate.Plug do
     do_call(conn, opts)
   end
 
+  def call(conn, _) do
+    conn
+  end
+
   # Specifing the locale in the path overrides everything else
   def do_call(conn, opts) do
     enforce_locale = Map.get(opts, :enforce_locale)
