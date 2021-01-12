@@ -7,7 +7,7 @@ defmodule Alternate.Plug do
     []
   end
 
-  defp put_gettext_locale(conn, gettext, locale) when is_atom(gettext) do
+  defp put_gettext_locale(conn, gettext, locale) when is_atom(gettext) and is_binary(locale) do
     Gettext.put_locale(gettext, locale)
 
     conn
@@ -62,19 +62,26 @@ defmodule Alternate.Plug do
 
   # Specifing the locale in the path overrides everything else
   def do_call(conn, opts) do
-    enforce_locale = Map.get(opts, :enforce_locale)
+    enforce_locale = Map.get(opts, :enforce_locale, false)
     default_locale = Map.get(opts, :default_locale)
     path_locale = from_prefix(conn, opts)
 
     current_locale =
-      path_locale || from_persisted(conn, opts) || from_accept_language(conn, opts) || (enforce_locale && default_locale)
+      path_locale || from_persisted(conn, opts) || from_accept_language(conn, opts)
+
+    current_locale =
+      if enforce_locale && is_nil(current_locale) do
+        default_locale
+      else
+        current_locale
+      end
 
     cond do
       current_locale && current_locale != path_locale && conn.method in ~w(GET HEAD) ->
         redirect_to_localized_route(conn, current_locale)
 
       true ->
-        put_locale(conn, opts, current_locale || default_locale)
+        put_locale(conn, opts, current_locale)
     end
   end
 
