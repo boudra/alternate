@@ -28,90 +28,36 @@ defmodule Alternate.Helpers do
   end
 
   def alternate_current_route(conn, type, locale) do
-    router = Phoenix.Controller.router_module(conn)
+    prefixes = Config.prefixes()
+    path_locale = Map.get(prefixes, List.first(conn.path_info))
 
-    path_params = conn.path_params
-
-    routes = router.__routes__
-
-    original_path_info =
-      path_params
-      |> Enum.reduce(conn.path_info, fn {k, v}, path ->
-        path
-        |> Enum.map(&URI.decode_www_form/1)
-        |> Enum.map(fn
-          ^v ->
-            ":#{k}"
-
-          route_element ->
-            route_element = URI.decode_www_form(route_element)
-
-            if is_list(v) and route_element in v do
-              "*#{k}"
-            else
-              route_element
-            end
-        end)
-        |> Enum.uniq()
-      end)
-
-    query_params = Enum.to_list(conn.query_params)
-
-    route_params =
-      Enum.reduce(original_path_info, [], fn
-        ":" <> key, params -> params ++ [Map.get(path_params, key, nil)]
-        "*" <> key, params -> params ++ [Map.get(path_params, key, nil)]
-        _segment, params -> params
-      end) ++ [query_params]
-
-    original_path = "/" <> Enum.join(original_path_info, "/")
-
-    found_route =
-      routes
-      |> Enum.find(fn
-        %{helper: nil} ->
-          false
-
-        %{path: ^original_path} ->
-          true
-
-        _route ->
-          false
-      end)
-      |> case do
-        %{helper: helper, opts: [action: action, locale: _]} ->
-          {helper, action}
-
-        %{helper: helper, opts: action} ->
-          {helper, action}
-
-        _ ->
-          nil
+    unlocalized =
+      if is_nil(path_locale) do
+        conn.path_info
+      else
+        Enum.drop(conn.path_info, 1)
       end
 
-    case found_route do
-      {helper, action} ->
-        has_localized_route? =
-          Enum.any?(routes, fn route ->
-            route_action =
-              case route.opts do
-                [action: action, locale: _] -> action
-                action -> action
-              end
+    prefix =
+      get_in(Config.locales(), [locale, :path_prefix])
 
-            route.helper == helper && route_action == action &&
-              route.assigns[Config.locale_assign_key()] == locale
-          end)
+    query =
+      if !match?(%Plug.Conn.Unfetched{}, conn.query_params) && map_size(conn.query_params) > 0 do
+        "?" <> URI.encode_query(conn.query_params)
+      else
+        ""
+      end
 
-        if has_localized_route? do
-          alternate_route(conn, type, locale, helper, action, route_params)
-        else
-          nil
-        end
+    path = "/" <> Enum.join([prefix | unlocalized], "/")
 
-      _ ->
-        nil
-    end
+    url =
+      if type == "url" do
+        conn.private.phoenix_endpoint.url()
+      else
+        ""
+      end
+
+    url <> path <> query
   end
 
   def alternate_current_path(conn, locale) do
