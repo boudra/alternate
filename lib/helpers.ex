@@ -38,12 +38,11 @@ defmodule Alternate.Helpers do
         Enum.drop(conn.path_info, 1)
       end
 
-    prefix =
-      get_in(Config.locales(), [locale, :path_prefix])
+    prefix = get_in(Config.locales(), [locale, :path_prefix])
 
     query =
-      if !match?(%Plug.Conn.Unfetched{}, conn.query_params) && map_size(conn.query_params) > 0 do
-        "?" <> URI.encode_query(conn.query_params)
+      if String.length(conn.query_string) > 0 do
+        "?" <> conn.query_string
       else
         ""
       end
